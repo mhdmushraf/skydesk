@@ -1,0 +1,63 @@
+{
+  "name": "Question",
+  "type": "object",
+  "properties": {
+    "school_id": {
+      "type": "string"
+    },
+    "subject_id": {
+      "type": "string"
+    },
+    "question_text": {
+      "type": "string"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "correct_index": {
+      "type": "integer"
+    },
+    "explanation": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "school_id",
+    "subject_id",
+    "question_text",
+    "options",
+    "correct_index"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.school_id": "{{user.data.school_id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

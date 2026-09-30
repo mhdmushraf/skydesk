@@ -1,0 +1,56 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "app_role": {
+      "type": "string",
+      "enum": [
+        "super_admin",
+        "school_admin",
+        "instructor",
+        "student"
+      ],
+      "default": "student"
+    },
+    "school_id": {
+      "type": "string"
+    },
+    "phone": {
+      "type": "string"
+    },
+    "id_number": {
+      "type": "string"
+    },
+    "date_of_birth": {
+      "type": "string",
+      "format": "date"
+    },
+    "address": {
+      "type": "string"
+    },
+    "license_number": {
+      "type": "string"
+    },
+    "license_level": {
+      "type": "string",
+      "enum": [
+        "PPL",
+        "CPL",
+        "ATPL",
+        "Other"
+      ]
+    },
+    "caa_ref": {
+      "type": "string"
+    },
+    "instructor_number": {
+      "type": "string"
+    },
+    "signature_url": {
+      "type": "string"
+    },
+    "instructor_id": {
+      "type": "string"
+    }
+  }
+}

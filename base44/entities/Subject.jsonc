@@ -1,0 +1,53 @@
+{
+  "name": "Subject",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string"
+    },
+    "code": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "license_level": {
+      "type": "string",
+      "enum": [
+        "PPL",
+        "CPL",
+        "Both"
+      ]
+    },
+    "pass_mark": {
+      "type": "number",
+      "default": 75
+    },
+    "duration_minutes": {
+      "type": "number",
+      "default": 60
+    }
+  },
+  "required": [
+    "name",
+    "code"
+  ],
+  "rls": {
+    "read": {},
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}
