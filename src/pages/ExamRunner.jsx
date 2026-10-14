@@ -2,8 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { base44 } from '@/api/base44Client';
 import { submitExam } from '@/functions/submitExam';
+import { tutorExam } from '@/functions/tutorExam';
 import { useToast } from '@/components/ui/use-toast';
-import { ArrowLeft, CheckCircle2, XCircle, FileCheck2, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, FileCheck2, Loader2, Sparkles, Lightbulb } from 'lucide-react';
 
 export default function ExamRunner() {
   const { subjectId } = useParams();
@@ -15,6 +16,9 @@ export default function ExamRunner() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [result, setResult] = useState(null);
+  const [tutorLoading, setTutorLoading] = useState(false);
+  const [tutorExplanations, setTutorExplanations] = useState({});
+  const [tutorOpen, setTutorOpen] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -31,6 +35,24 @@ export default function ExamRunner() {
   }, [subjectId]);
 
   const setAns = (qid, idx) => setAnswers((a) => ({ ...a, [qid]: idx }));
+
+  const wrongQuestions = questions.filter((q) => answers[q.id] !== undefined && answers[q.id] !== q.correct_index);
+
+  const runTutor = async () => {
+    if (!wrongQuestions.length) return;
+    setTutorLoading(true);
+    setTutorOpen(true);
+    try {
+      const payload = questions.map((q) => ({ questionId: q.id, selectedIndex: answers[q.id] }));
+      const res = await tutorExam({ subjectId, answers: payload });
+      const map = {};
+      for (const it of res.items || []) map[it.questionId] = it;
+      setTutorExplanations(map);
+    } catch (err) {
+      toast({ title: 'Tutor unavailable', description: err.message, variant: 'destructive' });
+      setTutorOpen(false);
+    } finally { setTutorLoading(false); }
+  };
 
   const submit = async () => {
     if (questions.some((q) => answers[q.id] === undefined)) {
@@ -69,6 +91,43 @@ export default function ExamRunner() {
               <Link to="/certificates" className="mt-3 inline-flex items-center gap-1.5 text-sm text-sky-600 font-medium hover:text-sky-700">View certificates →</Link>
             </div>
           )}
+
+          {wrongQuestions.length > 0 && !tutorOpen && (
+            <button onClick={runTutor} className="mt-6 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 text-white font-medium text-sm hover:from-sky-700 hover:to-indigo-700">
+              <Sparkles className="w-4 h-4" /> Explain my wrong answers with the AI tutor
+            </button>
+          )}
+
+          {tutorOpen && (
+            <div className="mt-6 text-left">
+              <div className="flex items-center gap-2 text-indigo-700 font-medium text-sm mb-3">
+                <Lightbulb className="w-4 h-4" /> AI Tutor — {wrongQuestions.length} question{wrongQuestions.length > 1 ? 's' : ''} to review
+              </div>
+              {tutorLoading ? (
+                <div className="flex items-center gap-2 text-sm text-slate-500 py-6 justify-center">
+                  <Loader2 className="w-4 h-4 animate-spin" /> The tutor is reviewing your answers…
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {wrongQuestions.map((q, i) => {
+                    const ex = tutorExplanations[q.id];
+                    return (
+                      <div key={q.id} className="p-4 rounded-xl bg-indigo-50/60 border border-indigo-100">
+                        <div className="text-xs font-semibold text-slate-400 mb-1">Question {i + 1}</div>
+                        <div className="font-medium text-slate-900 text-sm">{q.question_text}</div>
+                        <div className="mt-2 text-xs space-y-0.5">
+                          <div className="text-rose-600">Your answer: {answers[q.id] >= 0 ? String.fromCharCode(65 + answers[q.id]) + '. ' + q.options[answers[q.id]] : '—'}</div>
+                          <div className="text-emerald-600">Correct: {String.fromCharCode(65 + q.correct_index)}. {q.options[q.correct_index]}</div>
+                        </div>
+                        {ex && <div className="mt-3 text-sm text-slate-700 leading-relaxed border-t border-indigo-100 pt-3">{ex.explanation || ex}</div>}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="mt-6 flex items-center justify-center gap-3">
             <Link to="/exams" className="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-50">Back to subjects</Link>
             <button onClick={() => { setResult(null); setAnswers({}); }} className="px-4 py-2 bg-sky-600 text-white rounded-lg text-sm font-medium hover:bg-sky-700">Retake</button>
